@@ -24,7 +24,7 @@ app.use(
 // ✅ CORS middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://thebrightlayer.com"],
+   origin: "*", // allow all origins
     credentials: true,
   })
 );
