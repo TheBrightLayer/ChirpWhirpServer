@@ -1,11 +1,14 @@
+require("dotenv").config(); // <- MUST be first
 const express = require("express");
-const dotenv = require("dotenv");
 const connectDB = require("./config/db");
-const categoryRoutes = require("./routes/categoryRoutes");
-const cors = require("cors");
-const prerender = require("prerender-node"); // 👈 add this
 
-dotenv.config();
+// require other modules AFTER dotenv is loaded
+const categoryRoutes = require("./routes/categoryRoutes");
+const proposalRoutes = require("./routes/proposalRoutes");
+const sendgridRoutes = require("./routes/sendGridRoutes");
+const cors = require("cors");
+const prerender = require("prerender-node");
+
 connectDB();
 
 const app = express();
@@ -15,7 +18,6 @@ const app = express();
 //   prerender.set("prerenderToken", process.env.PRERENDER_TOKEN) // token from prerender.io
 // );
 
-
 app.use(
   prerender
     .set("prerenderServiceUrl", "https://service.prerender.io/")
@@ -24,19 +26,22 @@ app.use(
 // ✅ CORS middleware
 app.use(
   cors({
-   origin: "*", // allow all origins
+    origin: "*", // allow all origins
     credentials: true,
   })
 );
 
 // ✅ Body parsers
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// server.js (near top, before app.use("/api", ...))
+app.use(express.json({ limit: "10mb" })); // default was ~100kb
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // ✅ Routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/blogs", require("./routes/blogRoutes"));
 app.use("/api/categories", categoryRoutes);
+app.use("/api/proposal", proposalRoutes);
+app.use("/api/sendMail", sendgridRoutes);
 
 app.get("/", (req, res) => {
   res.send("🚀 Blog API running...");
